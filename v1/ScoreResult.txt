@@ -1,0 +1,7 @@
+Diana 95
+Bob 90
+Eve 88
+Alice 85
+Charlie 85
+
+Average Score: 88.60
