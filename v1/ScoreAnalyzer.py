@@ -46,4 +46,4 @@ WritingResults(RankedPeople, AverageScore, OutputFile)
 
 print(f"Ranking results have been written to {OutputFile}")
 
-#demo
+#This is a demo 
