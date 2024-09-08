@@ -2,7 +2,7 @@ import csv
 import Constant
 import sqlite3
 
-Conn = sqlite3.connect(Constant.DatabaseFile)
+Conn = sqlite3.connect(Constant.DatabaseFile, check_same_thread=False)
 Cursor = Conn.cursor()
 def Excecuter():
     Cursor.execute('''
@@ -44,11 +44,11 @@ def InsertScores(csv_file):
             Cursor.execute("INSERT OR IGNORE INTO Scores (id, Score) VALUES (?, ?)", (id, int(Score)))
 
 
-def InsertResults(csv_file):
-    with open(csv_file, 'r') as file:
-        CsvReader = csv.reader(file)
-        for Row in CsvReader:
-            if len(Row) != 2:
-                continue
-            Name, Score = Row
-            Cursor.execute("INSERT INTO Results (Name, Score) VALUES (?, ?)", (Name, Score))
+# def InsertResults(csv_file):
+#     with open(csv_file, 'r') as file:
+#         CsvReader = csv.reader(file)
+#         for Row in CsvReader:
+#             if len(Row) != 2:
+#                 continue
+#             Name, Score = Row
+#             Cursor.execute("INSERT INTO Results (Name, Score) VALUES (?, ?)", (Name, Score))

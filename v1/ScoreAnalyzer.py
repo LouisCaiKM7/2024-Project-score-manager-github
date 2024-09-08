@@ -1,7 +1,9 @@
 import csv
+import os
 import Constant
 import SqliteFile
 import sqlite3
+from flask import Flask, request, jsonify
 
 
 
@@ -78,33 +80,34 @@ def ExportResultsToCSV(CsvFile):
 
     
 
+def main(StudentFilePath,ScoreFilePath):
+    StudentsFile =StudentFilePath
+    ScoresFile = ScoreFilePath
+    OutputFile = "ScoreResult.csv"
 
-StudentsFile = Constant.StudentsFile 
-ScoresFile = Constant.ScoresFile 
-OutputFile = Constant.OutputFile 
-DatabaseFile = Constant.DatabaseFile
 
+    Students = ReadStudents(StudentsFile)
+    Scores = ReadScores(ScoresFile)
 
-Students = ReadStudents(StudentsFile)
-Scores = ReadScores(ScoresFile)
+    PeopleScores = MergeStudentsAndScores(Students, Scores)
 
-PeopleScores = MergeStudentsAndScores(Students, Scores)
+    RankedPeople = RankPeople(PeopleScores)
 
-RankedPeople = RankPeople(PeopleScores)
-
-AverageScore = CalculateAverageScores(PeopleScores)
+    AverageScore = CalculateAverageScores(PeopleScores)
 
 # WritingResults(RankedPeople, AverageScore, OutputFile)
 
-print(f"Ranking results have been written to {OutputFile}")
+    print(f"Ranking results have been written to {OutputFile}")
 
-SqliteFile.InsertStudents(Constant.StudentsFile)
-SqliteFile.InsertScores(Constant.ScoresFile)
-WritingResultsToDatabase(RankedPeople, AverageScore)
-ExportResultsToCSV(Constant.OutputFile)
+    SqliteFile.InsertStudents(StudentsFile)
+    SqliteFile.InsertScores(ScoresFile)
+    WritingResultsToDatabase(RankedPeople, AverageScore)
+    ExportResultsToCSV(Constant.OutputFile)
 
 
-SqliteFile.Conn.commit()
-SqliteFile.Conn.close()
+    SqliteFile.Conn.commit()
+    SqliteFile.Conn.close()
 
-print("Data has been successfully inserted into the SQLite database.")
+    print("Data has been successfully inserted into the SQLite database.")
+
+

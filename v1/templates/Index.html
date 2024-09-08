@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Files</title>
+</head>
+<body>
+
+    <form id="fileForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <label for="studentsFile">Upload Students File:</label>
+        <input type="file" id="studentsFile" name="studentsFile" required>
+        <br>
+        <label for="scoresFile">Upload Scores File:</label>
+        <input type="file" id="scoresFile" name="scoresFile" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+</body>
+</html>
+
+
