@@ -1,7 +1,0 @@
-Alice 85
-Bob 90
-Charlie 85
-Diana 95
-Eve 88
-
-

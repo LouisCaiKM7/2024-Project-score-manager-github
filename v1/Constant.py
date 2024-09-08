@@ -1,4 +1,8 @@
 #REMINDER: NEED TO CHANGE ACCORDING TO THE FILE PATH 
 
-InputFile = 'E:/2024-Project-score-manager-github/v1/ScoreList.txt'
-OutputFile = 'E:/2024-Project-score-manager-github/v1/ScoreResult.txt'
+# Use absolute paths for the files or make sure they are in the correct directory
+StudentsFile = r"E:\2024-Project-score-manager-github\v1\Students.csv"
+ScoresFile = r"E:\2024-Project-score-manager-github\v1\ScoreList.csv"
+OutputFile = r"E:\2024-Project-score-manager-github\v1\ScoreResult.csv"
+DatabaseFile = r"\2024-Project-score-manager-github\v1\ScoresDatabase.db"
+
