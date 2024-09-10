@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect, session
 import os
 import sqlite3
 import ScoreAnalyzer
+import UsersDatabaseProcessor
 from werkzeug.security import generate_password_hash, check_password_hash
 
 App = Flask(__name__)
@@ -12,16 +13,7 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 # Database setup for users
-conn = sqlite3.connect('users.db', check_same_thread=False)
-cur = conn.cursor()
-cur.execute('''
-CREATE TABLE IF NOT EXISTS Users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL
-)
-''')
-conn.commit()
+
 
 # Home Route
 @App.route('/')
@@ -36,8 +28,8 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        cur.execute("SELECT * FROM Users WHERE email = ?", (email,))
-        user = cur.fetchone()
+        UsersDatabaseProcessor.cur.execute("SELECT * FROM Users WHERE email = ?", (email,))
+        user = UsersDatabaseProcessor.cur.fetchone()
         if user and check_password_hash(user[2], password):
             session['user_id'] = user[0]
             return redirect('/upload')
@@ -52,8 +44,8 @@ def signup():
         password = request.form['password']
         hashed_password = generate_password_hash(password)
         try:
-            cur.execute("INSERT INTO Users (email, password) VALUES (?, ?)", (email, hashed_password))
-            conn.commit()
+            UsersDatabaseProcessor.cur.execute("INSERT INTO Users (email, password) VALUES (?, ?)", (email, hashed_password))
+            UsersDatabaseProcessor.conn.commit()
             return redirect('/login')
         except sqlite3.IntegrityError:
             return "Email already exists", 400

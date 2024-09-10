@@ -1,14 +1,23 @@
 import csv
 import os
 import Constant
-import SqliteFile
+import ScoresDataBaseProcessor
 import sqlite3
 from flask import Flask, request, jsonify
 
 GlobalScore = {}
 
-SqliteFile.Excecuter()
+ScoresDataBaseProcessor.Excecuter()
 
+
+def open_database():
+    ScoresDataBaseProcessor.Conn = sqlite3.connect(Constant.DatabaseFile, check_same_thread=False)
+    ScoresDataBaseProcessor.Cursor = ScoresDataBaseProcessor.Conn.cursor()
+
+def close_database():
+    if ScoresDataBaseProcessor.Conn:
+        ScoresDataBaseProcessor.Conn.commit()  # Ensure all changes are committed
+        ScoresDataBaseProcessor.Conn.close()
 
 def ReadStudents(FileName):
     Students = {}
@@ -59,18 +68,18 @@ def RankPeople(PeopleScores):
 
 def WritingResultsToDatabase(RankedPeople):
     for Name, Score in RankedPeople:
-        SqliteFile.Cursor.execute("INSERT INTO Results (Name, Score) VALUES (?, ?)", (Name, Score))
+        ScoresDataBaseProcessor.Cursor.execute("INSERT INTO Results (Name, Score) VALUES (?, ?)", (Name, Score))
 
     
 
 
 def ExportResultsToCSV(CsvFile):
     
-    SqliteFile.Cursor.execute("SELECT Name, Score FROM Results")
+    ScoresDataBaseProcessor.Cursor.execute("SELECT Name, Score FROM Results")
  
-    Rows = SqliteFile.Cursor.fetchall()
+    Rows = ScoresDataBaseProcessor.Cursor.fetchall()
 
-    ColumnNames = [description[0] for description in SqliteFile.Cursor.description]
+    ColumnNames = [description[0] for description in ScoresDataBaseProcessor.Cursor.description]
 
     with open(CsvFile, 'w', newline='') as File:
         CsvWriter = csv.writer(File)
@@ -85,36 +94,36 @@ def ExportResultsToCSV(CsvFile):
     
         
 
+def main(StudentFilePath, ScoreFilePath):
+    # Open the database
+    open_database()
+
+    try:
+        StudentsFile = StudentFilePath
+        ScoresFile = ScoreFilePath
+        OutputFile = "ScoreResult.csv"
+
+        # Processing steps
+        Students = ReadStudents(StudentsFile)
+        Scores = ReadScores(ScoresFile)
+        PeopleScores = MergeStudentsAndScores(Students, Scores)
+        RankedPeople = RankPeople(PeopleScores)
+        AverageScore = CalculateAverageScores()
+
+        # Insert data into the database
+        ScoresDataBaseProcessor.InsertStudents(StudentsFile)
+        ScoresDataBaseProcessor.InsertScores(ScoresFile)
+        WritingResultsToDatabase(RankedPeople)
+
+        # Export results to CSV
+        ExportResultsToCSV(Constant.OutputFile)
+
+        print(f"Ranking results have been written to {OutputFile}")
+        print("Data has been successfully inserted into the SQLite database.")
     
-
-def main(StudentFilePath,ScoreFilePath):
-    StudentsFile =StudentFilePath
-    ScoresFile = ScoreFilePath
-    OutputFile = "ScoreResult.csv"
-
-
-    Students = ReadStudents(StudentsFile)
-    Scores = ReadScores(ScoresFile)
-
-    PeopleScores = MergeStudentsAndScores(Students, Scores)
-
-    RankedPeople = RankPeople(PeopleScores)
-
-    AverageScore = CalculateAverageScores()
-
-# WritingResults(RankedPeople, AverageScore, OutputFile)
-
-    print(f"Ranking results have been written to {OutputFile}")
-    # SqliteFile.Conn = sqlite3.connect(Constant.DatabaseFile, check_same_thread=False)
-    SqliteFile.InsertStudents(StudentsFile)
-    SqliteFile.InsertScores(ScoresFile)
-    WritingResultsToDatabase(RankedPeople)
-    ExportResultsToCSV(Constant.OutputFile)
-
-    SqliteFile.Conn.commit()
-    # SqliteFile.Conn.commit()
+    except Exception as e:
+        print(f"An error occurred: {e}")
     
-
-    print("Data has been successfully inserted into the SQLite database.")
-
-
+    finally:
+        # Ensure the database is closed after processing
+        close_database()
