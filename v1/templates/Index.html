@@ -6,7 +6,64 @@
     <title>Select Files</title>
 </head>
 <body>
+    <!-- Success message -->
+    {% if message %}
+        <div style="color: green; font-weight: bold;">{{ message }}</div>
+    {% endif %}
 
+    <!-- Error message -->
+    {% if error %}
+        <div style="color: red; font-weight: bold;">{{ error }}</div>
+    {% endif %}
+
+    <form id="fileForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <label for="studentsFile">Upload Students File:</label>
+        <input type="file" id="studentsFile" name="studentsFile" required>
+        <br>
+        <label for="scoresFile">Upload Scores File:</label>
+        <input type="file" id="scoresFile" name="scoresFile" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+    <p><a href="/logout">Logout</a></p>
+</body>
+</html>
+
+
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Files</title>
+</head>
+<body>
+    <form id="fileForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <label for="studentsFile">Upload Students File:</label>
+        <input type="file" id="studentsFile" name="studentsFile" required>
+        <br>
+        <label for="scoresFile">Upload Scores File:</label>
+        <input type="file" id="scoresFile" name="scoresFile" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+    <p><a href="/logout">Logout</a></p>
+</body>
+</html> -->
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    <title>Select Files</title>
+</head>
+<body>
+    
     <form id="fileForm" action="/upload" method="POST" enctype="multipart/form-data">
         <label for="studentsFile">Upload Students File:</label>
         <input type="file" id="studentsFile" name="studentsFile" required>
@@ -20,4 +77,4 @@
 </body>
 </html>
 
-
+ -->

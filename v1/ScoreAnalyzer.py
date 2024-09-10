@@ -5,7 +5,7 @@ import SqliteFile
 import sqlite3
 from flask import Flask, request, jsonify
 
-
+GlobalScore = {}
 
 SqliteFile.Excecuter()
 
@@ -42,13 +42,14 @@ def MergeStudentsAndScores(Students, Scores):
     for StudentID, Name in Students.items():
         if StudentID in Scores:
             PeopleScores.append((Name, Scores[StudentID]))
+            GlobalScore[Name] = Scores[StudentID]
 
     return PeopleScores
 
-def CalculateAverageScores(PeopleScores):
-    if not PeopleScores:
-        return 0 
-    AverageScore = "{:.2f}".format(sum(Score for _, Score in PeopleScores) / len(PeopleScores))
+def CalculateAverageScores():
+    if not GlobalScore:
+        return 0  # No scores to calculate
+    AverageScore = "{:.2f}".format(sum(GlobalScore.values()) / len(GlobalScore))
     return AverageScore
 
 def RankPeople(PeopleScores):
@@ -56,11 +57,11 @@ def RankPeople(PeopleScores):
     return RankedPeople
 
 
-def WritingResultsToDatabase(RankedPeople, AverageScore):
+def WritingResultsToDatabase(RankedPeople):
     for Name, Score in RankedPeople:
         SqliteFile.Cursor.execute("INSERT INTO Results (Name, Score) VALUES (?, ?)", (Name, Score))
 
-    SqliteFile.Cursor.execute("INSERT INTO Results (Name, Score) VALUES (?, ?)", ("Average Score",AverageScore))
+    
 
 
 def ExportResultsToCSV(CsvFile):
@@ -78,6 +79,12 @@ def ExportResultsToCSV(CsvFile):
 
         CsvWriter.writerows(Rows)
 
+        # Write the global average score
+        CsvWriter.writerow(["Average Score", CalculateAverageScores()])
+
+    
+        
+
     
 
 def main(StudentFilePath,ScoreFilePath):
@@ -93,20 +100,20 @@ def main(StudentFilePath,ScoreFilePath):
 
     RankedPeople = RankPeople(PeopleScores)
 
-    AverageScore = CalculateAverageScores(PeopleScores)
+    AverageScore = CalculateAverageScores()
 
 # WritingResults(RankedPeople, AverageScore, OutputFile)
 
     print(f"Ranking results have been written to {OutputFile}")
-
+    # SqliteFile.Conn = sqlite3.connect(Constant.DatabaseFile, check_same_thread=False)
     SqliteFile.InsertStudents(StudentsFile)
     SqliteFile.InsertScores(ScoresFile)
-    WritingResultsToDatabase(RankedPeople, AverageScore)
+    WritingResultsToDatabase(RankedPeople)
     ExportResultsToCSV(Constant.OutputFile)
 
-
     SqliteFile.Conn.commit()
-    SqliteFile.Conn.close()
+    # SqliteFile.Conn.commit()
+    
 
     print("Data has been successfully inserted into the SQLite database.")
 
