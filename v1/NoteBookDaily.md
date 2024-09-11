@@ -21,3 +21,9 @@ Things Changed:
 TODO:
 1. AverageScore() have a mistake
 2. writing personal page(Editors and Readers)
+
+2024/9/11:
+Things Changed:
+1. CalculateAverageScore() reads data from db
+TODO:
+1. writing personal page(Editors and Readers)

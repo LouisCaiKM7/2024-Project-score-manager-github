@@ -51,14 +51,22 @@ def MergeStudentsAndScores(Students, Scores):
     for StudentID, Name in Students.items():
         if StudentID in Scores:
             PeopleScores.append((Name, Scores[StudentID]))
-            GlobalScore[Name] = Scores[StudentID]
+            
 
     return PeopleScores
 
 def CalculateAverageScores():
-    if not GlobalScore:
+    ScoresDataBaseProcessor.Cursor.execute("SELECT Score FROM Results")
+    Scores = ScoresDataBaseProcessor.Cursor.fetchall()
+
+    if not Scores:
         return 0  # No scores to calculate
-    AverageScore = "{:.2f}".format(sum(GlobalScore.values()) / len(GlobalScore))
+
+    # Extract the scores (assuming they are in tuple format from fetchall)
+    TotalScores = [score[0] for score in Scores if isinstance(score[0], int)]  # Filter to avoid non-integer scores
+
+    # Calculate the average
+    AverageScore = "{:.2f}".format(sum(TotalScores) / len(TotalScores)) if TotalScores else 0
     return AverageScore
 
 def RankPeople(PeopleScores):
