@@ -90,7 +90,7 @@ def logout():
 if __name__ == '__main__':
     App.run(debug=True)
 
-login()
+
 
 
 # from flask import Flask, request, jsonify, render_template
