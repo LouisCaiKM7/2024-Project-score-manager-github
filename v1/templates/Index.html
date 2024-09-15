@@ -1,4 +1,89 @@
-<!DOCTYPE html>
+{% extends "layout.html" %}
+
+{% block head %}
+<title>Upload Scores and Login</title>
+{% endblock %}
+
+{% block body %}
+    {% if message %}
+    <div style="color: green; font-weight: bold;">{{ message }}</div>
+    {% endif %}
+
+    {% if error %}
+    <div style="color: red; font-weight: bold;">{{ error }}</div>
+    {% endif %}
+
+    <h1>Upload Students File</h1>
+    <form id="fileForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <label for="studentFile">Upload CSV File (Names and Scores):</label>
+        <input type="file" id="studentFile" name="studentFile" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h1>Login</h1>
+    <form action="/login" method="POST">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+        <button type="submit">Login</button>
+    </form>
+
+    <p><a href="/signup">Sign Up</a></p>
+{% endblock %}
+
+
+<!-- {% extends "layout.html" %}
+
+{% block head %}
+    <title>Select Files</title>
+{% endblock %}
+{% block body %}
+    {% if message %}
+    <div style="color: green; font-weight: bold;">{{ message }}</div>
+    {% endif %}
+
+    {% if error %}
+    <div style="color: red; font-weight: bold;">{{ error }}</div>
+    {% endif %}
+
+    <form id="fileForm" action="/upload" method="POST" enctype="multipart/form-data">
+    <label for="studentsFile">Upload Students File:</label>
+    <input type="file" id="studentsFile" name="studentsFile" required>
+    <br>
+    <label for="scoresFile">Upload Scores File:</label>
+    <input type="file" id="scoresFile" name="scoresFile" required>
+    <br>
+    <button type="submit">Submit</button>
+    </form>
+    <h1>Enter Student Information</h1>
+    
+    <form id="studentForm" action="/submit_student" method="POST">
+        <label for="studentName">Student Name:</label>
+        <input type="text" id="studentName" name="studentName" required>
+        <br>
+        <label for="studentID">Student ID:</label>
+        <input type="text" id="studentID" name="studentID" required>
+        <br>
+        <button type="submit">Submit Student</button>
+    </form>
+
+    <h1>Enter Score Information</h1>
+    
+    <form id="scoreForm" action="/submit_score" method="POST">
+        <label for="studentID">Student ID:</label>
+        <input type="text" id="scoreStudentID" name="studentID" required>
+        <br>
+        <label for="score">Score:</label>
+        <input type="number" id="score" name="score" required>
+        <br>
+        <button type="submit">Submit Score</button>
+    </form>
+    <p><a href="/logout">Logout</a></p>
+{% endblock %} -->
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,12 +91,10 @@
     <title>Select Files</title>
 </head>
 <body>
-    <!-- Success message -->
     {% if message %}
         <div style="color: green; font-weight: bold;">{{ message }}</div>
     {% endif %}
 
-    <!-- Error message -->
     {% if error %}
         <div style="color: red; font-weight: bold;">{{ error }}</div>
     {% endif %}
@@ -28,7 +111,7 @@
     <p><a href="/logout">Logout</a></p>
 </body>
 </html>
-
+ -->
 
 <!-- 
 <!DOCTYPE html>

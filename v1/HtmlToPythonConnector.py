@@ -1,8 +1,11 @@
+
 from flask import Flask, request, jsonify, render_template, redirect, session
 import os
 import sqlite3
 import ScoreAnalyzer
 import UsersDatabaseProcessor
+import ScoresDataBaseProcessor
+import Constant
 from werkzeug.security import generate_password_hash, check_password_hash
 
 App = Flask(__name__)
@@ -26,11 +29,13 @@ def home():
 @App.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
+        # email = request.form['email']
         password = request.form['password']
-        UsersDatabaseProcessor.cur.execute("SELECT * FROM Users WHERE email = ?", (email,))
-        user = UsersDatabaseProcessor.cur.fetchone()
-        if user and check_password_hash(user[2], password):
+        id = request.form['id']
+        UsersDatabaseProcessor.Cur.execute("SELECT * FROM Students WHERE id = ?", (id,))
+        user = UsersDatabaseProcessor.Cur.fetchone()
+        print(user[1])
+        if user and check_password_hash(user[1], password):
             session['user_id'] = user[0]
             return redirect('/upload')
         return "Invalid email or password", 401
@@ -44,8 +49,8 @@ def signup():
         password = request.form['password']
         hashed_password = generate_password_hash(password)
         try:
-            UsersDatabaseProcessor.cur.execute("INSERT INTO Users (email, password) VALUES (?, ?)", (email, hashed_password))
-            UsersDatabaseProcessor.conn.commit()
+            UsersDatabaseProcessor.Cur.execute("INSERT INTO Users (email, password) VALUES (?, ?)", (email, hashed_password))
+            UsersDatabaseProcessor.Conn.commit()
             return redirect('/login')
         except sqlite3.IntegrityError:
             return "Email already exists", 400
@@ -80,6 +85,36 @@ def upload_file():
             return render_template('index.html', error=str(e))
 
     return render_template('index.html')
+
+@App.route('/submit_student', methods=['POST'])
+def submit_student():
+    student_name = request.form['studentName']
+    student_id = request.form['studentID']
+    
+    try:
+        # Insert the student into the database
+        ScoresDataBaseProcessor.Cursor.execute("INSERT OR IGNORE INTO Students (id, Name) VALUES (?, ?)", (student_name,student_id ))
+        ScoresDataBaseProcessor.Conn.commit()
+
+        # Return a message or redirect to another page
+        return f"Student {student_name} with ID {student_id} added successfully!"
+    except Exception as e:
+        return f"Error: {str(e)}"
+# Route to handle score form submission
+@App.route('/submit_score', methods=['POST'])
+def submit_score():
+    student_id = request.form['studentID']
+    score = request.form['score']
+    
+    try:
+        ScoreAnalyzer.open_database()
+        # Insert the score into the database
+        ScoresDataBaseProcessor.Cursor.execute("INSERT OR IGNORE INTO Scores (id, Score) VALUES (?, ?)", (student_id, int(score)))
+        ScoresDataBaseProcessor.Conn.commit()
+        ScoreAnalyzer.DirectlyInsert()
+        return f"Score {score} added for student ID {student_id}!"
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 # Logout Route
 @App.route('/logout')

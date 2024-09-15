@@ -27,3 +27,15 @@ Things Changed:
 1. CalculateAverageScore() reads data from db
 TODO:
 1. writing personal page(Editors and Readers)
+
+2024/9/12:
+Things Changed:
+1. Modified html files
+2. implemnt on Inserting on web page
+
+2024/9/14:
+Things Changed:
+1. Work on personal page(Editors and Readers)
+TODO:
+1. db Structure change
+2. Still have problems
