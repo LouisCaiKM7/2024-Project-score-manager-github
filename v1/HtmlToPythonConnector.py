@@ -29,18 +29,43 @@ def home():
 @App.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # email = request.form['email']
+        email = request.form['email']
         password = request.form['password']
-        id = request.form['id']
-        UsersDatabaseProcessor.Cur.execute("SELECT * FROM Students WHERE id = ?", (id,))
+        # password = request.form['password']
+        # id = request.form['id']
+        UsersDatabaseProcessor.Cur.execute("SELECT * FROM Users WHERE email = ?", (email,))
         user = UsersDatabaseProcessor.Cur.fetchone()
-        print(user[1])
-        if user and check_password_hash(user[1], password):
+        print(user,check_password_hash(user[2], password))
+        if user and check_password_hash(user[2], password):
             session['user_id'] = user[0]
             return redirect('/upload')
         return "Invalid email or password", 401
     return render_template('login.html')
 
+
+
+@App.route('/login_students', methods=['GET', 'POST'])
+def login_students():
+    if request.method == 'POST':
+        id = request.form['id']
+        password = request.form['password']
+        UsersDatabaseProcessor.Cur.execute("SELECT * FROM Students WHERE id = ?", (id,))
+        user = UsersDatabaseProcessor.Cur.fetchone()
+        print(user,check_password_hash(user[1], password))
+        if user and check_password_hash(user[1], password):
+            session['user_id'] = user[0]
+            return redirect('/students_page')
+        return "Invalid email or password", 401
+    return render_template('studentslogin.html')
+
+@App.route('/students_page', methods=['GET', 'POST'])
+def studentpage():
+    user_id = '0000'+ str(session.get('user_id'))
+    print(user_id)
+    ScoresDataBaseProcessor.Cursor.execute("SELECT Score FROM Scores WHERE id = ?", (user_id,))
+    score = ScoresDataBaseProcessor.Cursor.fetchall()
+    print(score)
+    return render_template('studentspage.html',score = score)
 # Signup Route
 @App.route('/signup', methods=['GET', 'POST'])
 def signup():

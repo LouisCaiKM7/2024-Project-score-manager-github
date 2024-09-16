@@ -22,48 +22,81 @@ def close_database():
         ScoresDataBaseProcessor.Conn.close()
 
 
-def MergeStudentsAndScores():
-    ScoresDataBaseProcessor.Cursor.execute('''
-        SELECT Students.Name, Scores.Score 
-        FROM Students 
-        JOIN Scores ON Students.id = Scores.id
-    ''')
-    PeopleScores = ScoresDataBaseProcessor.Cursor.fetchall()
+# def MergeStudentsAndScores():
+#     ScoresDataBaseProcessor.Cursor.execute('''
+#         SELECT Students.Name, Scores.Score 
+#         FROM Students 
+#         JOIN Scores ON Students.id = Scores.id
+#     ''')
+#     PeopleScores = ScoresDataBaseProcessor.Cursor.fetchall()
 
-    for name, score in PeopleScores:
-        GlobalScore[name] = score
+#     for name, score in PeopleScores:
+#         GlobalScore[name] = score
+
+#     return PeopleScores
+
+
+def ReadStudents(FileName):
+    Students = {}
+    with open(FileName, 'r') as File:
+        CsvReader = csv.reader(File)
+        next(CsvReader) 
+        for Row in CsvReader:
+            Name, StudentID = Row
+            Students[StudentID] = Name 
+        return Students
+
+def ReadScores(FileName):
+    Scores = {}
+
+    with open(FileName, 'r') as File:
+        CsvReader = csv.reader(File)
+        next(CsvReader)  
+
+        for Row in CsvReader:
+            StudentID, Score = Row
+            Scores[StudentID] = int(Score) 
+        return Scores
+def MergeStudentsAndScores(Students, Scores):
+    PeopleScores = []
+
+    for StudentID, Name in Students.items():
+        if StudentID in Scores:
+            PeopleScores.append((Name, Scores[StudentID]))
+
 
     return PeopleScores
-
-def InsertStudentsAndPasswords(): 
-    # Fetch student names from the Scores database
-    ScoresDataBaseProcessor.Cursor.execute("SELECT Name FROM Students")
-    Peopleid = ScoresDataBaseProcessor.Cursor.fetchall()
-    
-    # Print fetched data
-    print(Peopleid)
-    
-    for person in Peopleid:
-        # 'person' is a tuple, so we need to get the first element (the name)
-        name = person[0]
         
-        # Check if the id (name) already exists in the Users database
-        UsersDatabaseProcessor.Cur.execute("SELECT id FROM Students WHERE id = ?", (name,))
-        existing_record = UsersDatabaseProcessor.Cur.fetchone()
-        
-        # If no existing record is found, insert the new student
-        if not existing_record:
-            UsersDatabaseProcessor.Cur.execute(
-                "INSERT INTO Students (id, password) VALUES (?, ?)",
-                (name, generate_password_hash(name))
-            )
-        else:
-            print(f"Skipping {name}, already exists.")
 
-    # Commit the transaction
-    UsersDatabaseProcessor.Conn.commit()
+# def InsertStudentsAndPasswords(): 
+#     # Fetch student names from the Scores database
+#     ScoresDataBaseProcessor.Cursor.execute("SELECT Name FROM Students")
+#     Peopleid = ScoresDataBaseProcessor.Cursor.fetchall()
     
-    print("Executed")
+#     # Print fetched data
+#     print(Peopleid)
+    
+#     for person in Peopleid:
+#         # 'person' is a tuple, so we need to get the first element (the name)
+#         name = person[0]
+        
+#         # Check if the id (name) already exists in the Users database
+#         UsersDatabaseProcessor.Cur.execute("SELECT id FROM Students WHERE id = ?", (name,))
+#         existing_record = UsersDatabaseProcessor.Cur.fetchone()
+        
+#         # If no existing record is found, insert the new student
+#         if not existing_record:
+#             UsersDatabaseProcessor.Cur.execute(
+#                 "INSERT INTO Students (id, password) VALUES (?, ?)",
+#                 (name, generate_password_hash(name))
+#             )
+#         else:
+#             print(f"Skipping {name}, already exists.")
+
+#     # Commit the transaction
+#     UsersDatabaseProcessor.Conn.commit()
+    
+#     print("Executed")
 
 
 
@@ -128,9 +161,6 @@ def DirectlyInsert():
     except Exception as E:
         print(f"An error occurred: {E}")
     
-    finally:
-        # Ensure the database is closed after processing
-        close_database()
 
 
 
@@ -141,15 +171,16 @@ def main(StudentFilePath, ScoreFilePath):
     try:
         StudentsFile = StudentFilePath
         ScoresFile = ScoreFilePath
-        OutputFile = r"E:\2024-Project-score-manager-github\v1\Tests\ScoreResult.csv"
-    
-        # Insert data into the database
-        ScoresDataBaseProcessor.InsertStudents(StudentsFile)
-        ScoresDataBaseProcessor.InsertScores(ScoresFile)
-        PeopleScores = MergeStudentsAndScores()
+        OutputFile = "ScoreResult.csv"
+
+        # Processing steps
+        Students = ReadStudents(StudentsFile)
+        Scores = ReadScores(ScoresFile)
+        PeopleScores = MergeStudentsAndScores(Students, Scores)
         RankedPeople = RankPeople(PeopleScores)
+        AverageScore = CalculateAverageScores()
         WritingResultsToDatabase(RankedPeople)
-        InsertStudentsAndPasswords()
+
 
         # Export results to CSV
         ExportResultsToCSV(Constant.OutputFile)
@@ -160,6 +191,4 @@ def main(StudentFilePath, ScoreFilePath):
     except Exception as E:
         print(f"An error occurred: {E}")
     
-    finally:
-        # Ensure the database is closed after processing
-        close_database()
+   

@@ -27,16 +27,16 @@ def Excecuter():
     )
     ''')
 
-def InsertStudents(csv_file):
-    with open(csv_file, 'r') as file:
+def InsertStudents(CsvFile):
+    with open(CsvFile, 'r') as file:
         CsvReader = csv.reader(file)
         next(CsvReader)  
         for Row in CsvReader:
             id, Name = Row
             Cursor.execute("INSERT OR IGNORE INTO Students (id, Name) VALUES (?, ?)", (id, Name))
 
-def InsertScores(csv_file):
-    with open(csv_file, 'r') as file:
+def InsertScores(CsvFile):
+    with open(CsvFile, 'r') as file:
         CsvReader = csv.reader(file)
         next(CsvReader)  
         for Row in CsvReader:
@@ -44,8 +44,8 @@ def InsertScores(csv_file):
             Cursor.execute("INSERT OR IGNORE INTO Scores (id, Score) VALUES (?, ?)", (id, int(Score)))
 
 
-# def InsertResults(csv_file):
-#     with open(csv_file, 'r') as file:
+# def InsertResults(CsvFile):
+#     with open(CsvFile, 'r') as file:
 #         CsvReader = csv.reader(file)
 #         for Row in CsvReader:
 #             if len(Row) != 2:

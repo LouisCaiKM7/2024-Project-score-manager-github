@@ -39,3 +39,10 @@ Things Changed:
 TODO:
 1. db Structure change
 2. Still have problems
+
+2024/9/16:
+Things Changed:
+1. Students page finished(need to implement:charts)
+2. delete some unnecessary changes
+TODO: 
+1. one file input & output
