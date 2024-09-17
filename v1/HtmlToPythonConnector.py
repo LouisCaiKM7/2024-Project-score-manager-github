@@ -60,7 +60,7 @@ def login_students():
 
 @App.route('/students_page', methods=['GET', 'POST'])
 def studentpage():
-    user_id = '0000'+ str(session.get('user_id'))
+    user_id = str(session.get('user_id'))
     print(user_id)
     ScoresDataBaseProcessor.Cursor.execute("SELECT Score FROM Scores WHERE id = ?", (user_id,))
     score = ScoresDataBaseProcessor.Cursor.fetchall()
@@ -88,56 +88,41 @@ def upload_file():
         return redirect('/login')
 
     if request.method == 'POST':
-        if 'studentsFile' not in request.files or 'scoresFile' not in request.files:
-            return render_template('index.html', error='Please upload both files')
+        if 'File' not in request.files:
+            return render_template('index.html', error='Please upload a csv file')
 
-        StudentFile = request.files['studentsFile']
-        ScoresFile = request.files['scoresFile']
+        File = request.files['File']
+        
 
-        if StudentFile.filename == '' or ScoresFile.filename == '':
+        if File.filename == '' :
             return render_template('index.html', error='No selected files')
 
-        StudentFilePath = os.path.join(UPLOAD_FOLDER, StudentFile.filename)
-        ScoresFilePath = os.path.join(UPLOAD_FOLDER, ScoresFile.filename)
-        StudentFile.save(StudentFilePath)
-        ScoresFile.save(ScoresFilePath)
+        FilePath = os.path.join(UPLOAD_FOLDER, File.filename)
+        File.save(FilePath)
+        
 
         try:
-            ScoreAnalyzer.main(StudentFilePath, ScoresFilePath)
-            success_message = f"File '{ScoresFile.filename}' and '{StudentFile.filename}' uploaded and processed successfully"
+            ScoreAnalyzer.main(FilePath)
+            success_message = f"File '{File}' uploaded and processed successfully"
             return render_template('index.html', message=success_message)
         except Exception as e:
             return render_template('index.html', error=str(e))
 
     return render_template('index.html')
 
-@App.route('/submit_student', methods=['POST'])
-def submit_student():
-    student_name = request.form['studentName']
-    student_id = request.form['studentID']
-    
-    try:
-        # Insert the student into the database
-        ScoresDataBaseProcessor.Cursor.execute("INSERT OR IGNORE INTO Students (id, Name) VALUES (?, ?)", (student_name,student_id ))
-        ScoresDataBaseProcessor.Conn.commit()
-
-        # Return a message or redirect to another page
-        return f"Student {student_name} with ID {student_id} added successfully!"
-    except Exception as e:
-        return f"Error: {str(e)}"
 # Route to handle score form submission
-@App.route('/submit_score', methods=['POST'])
+@App.route('/submit_student', methods=['POST'])
 def submit_score():
-    student_id = request.form['studentID']
-    score = request.form['score']
+    StudentName = request.form['studentName']
+    score = request.form['studentScore']
     
     try:
         ScoreAnalyzer.open_database()
         # Insert the score into the database
-        ScoresDataBaseProcessor.Cursor.execute("INSERT OR IGNORE INTO Scores (id, Score) VALUES (?, ?)", (student_id, int(score)))
+        ScoresDataBaseProcessor.Cursor.execute("INSERT OR IGNORE INTO Scores (id, Score) VALUES (?, ?)", (StudentName, int(score)))
         ScoresDataBaseProcessor.Conn.commit()
-        ScoreAnalyzer.DirectlyInsert()
-        return f"Score {score} added for student ID {student_id}!"
+        ScoreAnalyzer.DirectlyInsert(StudentName,score)
+        return f"Score {score} added for student ID {StudentName}!"
     except Exception as e:
         return f"Error: {str(e)}"
 

@@ -6,8 +6,8 @@ import sqlite3
 import UsersDatabaseProcessor
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, request, jsonify
+import uuid
 
-GlobalScore = {}
 
 ScoresDataBaseProcessor.Excecuter()
 
@@ -34,69 +34,136 @@ def close_database():
 #         GlobalScore[name] = score
 
 #     return PeopleScores
+def generate_unique_id():
+    return str(uuid.uuid4())  
 
+def InsertStudentsandScores(Student,Score):
+    ScoresDataBaseProcessor.Cursor.execute("SELECT id FROM Students WHERE Name = ?", (Student,))
+    result = ScoresDataBaseProcessor.Cursor.fetchone()
 
-def ReadStudents(FileName):
+    if result:  # If student exists, use the existing ID
+        StudentID = result[0]
+        print(f"Student {Student} already exists with ID {StudentID}.")
+    else:  # Generate new ID if the student doesn't exist
+        StudentID = generate_unique_id()
+        print(f"New ID generated for {Student}: {StudentID}")
+        ScoresDataBaseProcessor.Cursor.execute(
+            "INSERT INTO Students (id, Name) VALUES (?, ?)", (StudentID, Student)
+        
+        )
+        ScoresDataBaseProcessor.Conn.commit()
+
+    # Add to Students and ScoresDict
+    ScoresDataBaseProcessor.Cursor.execute(
+        "INSERT OR IGNORE INTO Scores (id, Score) VALUES (?, ?)", (StudentID, int(Score)))
+    ScoresDataBaseProcessor.Cursor.execute(
+        "INSERT OR IGNORE INTO Results (Name, Score) VALUES (?, ?)", (Student, int(Score)))
+    ScoresDataBaseProcessor.Conn.commit()
+    
+def ReadStudent(FileName):
     Students = {}
+    ScoresDict = {}
+    
     with open(FileName, 'r') as File:
         CsvReader = csv.reader(File)
-        next(CsvReader) 
-        for Row in CsvReader:
-            Name, StudentID = Row
-            Students[StudentID] = Name 
-        return Students
-
-def ReadScores(FileName):
-    Scores = {}
-
-    with open(FileName, 'r') as File:
-        CsvReader = csv.reader(File)
-        next(CsvReader)  
+        next(CsvReader)  # Skip header row if present
 
         for Row in CsvReader:
-            StudentID, Score = Row
-            Scores[StudentID] = int(Score) 
-        return Scores
-def MergeStudentsAndScores(Students, Scores):
+            Name, Score = Row
+            
+            # Check if the student exists in the database
+            ScoresDataBaseProcessor.Cursor.execute("SELECT id FROM Students WHERE Name = ?", (Name,))
+            result = ScoresDataBaseProcessor.Cursor.fetchone()
+
+            if result:  # If student exists, use the existing ID
+                StudentID = result[0]
+                print(f"Student {Name} already exists with ID {StudentID}.")
+            else:  # Generate new ID if the student doesn't exist
+                StudentID = generate_unique_id()
+                print(f"New ID generated for {Name}: {StudentID}")
+                ScoresDataBaseProcessor.Cursor.execute(
+                    "INSERT INTO Students (id, Name) VALUES (?, ?)", (StudentID, Name)
+                )
+
+            # Add to Students and ScoresDict
+            Students[StudentID] = Name
+            ScoresDict[StudentID] = int(Score)
+            ScoresDataBaseProcessor.Cursor.execute(
+                "INSERT OR IGNORE INTO Scores (id, Score) VALUES (?, ?)", (StudentID, int(Score))
+            )
+
+        print(Students)
+        return Students, ScoresDict
+
+
+# def ReadScore(FileName):
+#     Score = {}
+#     with open(FileName, 'r') as File:
+#         CsvReader = csv.reader(File)
+#         next(CsvReader) 
+#         for Row in CsvReader:
+#             StudentID = generate_unique_id()
+#             Name, Score = Row
+             
+#             Score[StudentID] = Score
+#         print(Score)
+#         return Score
+
+# def ReadScores(FileName):
+#     Scores = {}
+
+#     with open(FileName, 'r') as File:
+#         CsvReader = csv.reader(File)
+#         next(CsvReader)  
+
+#         for Row in CsvReader:
+#             StudentID, Score = Row
+#             Scores[StudentID] = int(Score) 
+#         return Scores
+def MergeStudentsAndScores(Students, ScoresDict):
     PeopleScores = []
 
     for StudentID, Name in Students.items():
-        if StudentID in Scores:
-            PeopleScores.append((Name, Scores[StudentID]))
-
+        if StudentID in ScoresDict:
+            PeopleScores.append((Name, ScoresDict[StudentID]))  # Match name with score
+    print(PeopleScores)
 
     return PeopleScores
-        
 
-# def InsertStudentsAndPasswords(): 
-#     # Fetch student names from the Scores database
-#     ScoresDataBaseProcessor.Cursor.execute("SELECT Name FROM Students")
-#     Peopleid = ScoresDataBaseProcessor.Cursor.fetchall()
-    
-#     # Print fetched data
-#     print(Peopleid)
-    
-#     for person in Peopleid:
-#         # 'person' is a tuple, so we need to get the first element (the name)
-#         name = person[0]
-        
-#         # Check if the id (name) already exists in the Users database
-#         UsersDatabaseProcessor.Cur.execute("SELECT id FROM Students WHERE id = ?", (name,))
-#         existing_record = UsersDatabaseProcessor.Cur.fetchone()
-        
-#         # If no existing record is found, insert the new student
-#         if not existing_record:
-#             UsersDatabaseProcessor.Cur.execute(
-#                 "INSERT INTO Students (id, password) VALUES (?, ?)",
-#                 (name, generate_password_hash(name))
-#             )
-#         else:
-#             print(f"Skipping {name}, already exists.")
 
-#     # Commit the transaction
-#     UsersDatabaseProcessor.Conn.commit()
+def InsertStudentsAndPasswords(): 
+    # Fetch student IDs from the Scores database
+    ScoresDataBaseProcessor.Cursor.execute("SELECT id FROM Students")
+    Peopleid = ScoresDataBaseProcessor.Cursor.fetchall()
     
-#     print("Executed")
+    # Print fetched data for debugging
+    print(f"Fetched People IDs: {Peopleid}")
+    
+    for person in Peopleid:
+        # 'person' is a tuple, so we need to get the first element (the ID)
+        student_id = person[0]
+        
+        # Print the student ID being processed
+        print(f"Processing Student ID: {student_id}")
+        
+        # Check if the id already exists in the Users database
+        UsersDatabaseProcessor.Cur.execute("SELECT id FROM Students WHERE id = ?", (str(student_id),))
+        existing_record = UsersDatabaseProcessor.Cur.fetchone()
+        
+        # If no existing record is found, insert the new student
+        if not existing_record:
+            print(f"Inserting new user for student ID {student_id}")
+            UsersDatabaseProcessor.Cur.execute(
+                "INSERT INTO Students (id, password) VALUES (?, ?)",
+                (str(student_id), generate_password_hash(str(student_id)))
+            )
+        else:
+            print(f"Skipping {student_id}, already exists.")
+
+    # Commit the transaction
+    UsersDatabaseProcessor.Conn.commit()
+    
+    print("Executed")
 
 
 
@@ -121,6 +188,8 @@ def RankPeople(PeopleScores):
 def WritingResultsToDatabase(RankedPeople):
     for Name, Score in RankedPeople:
         ScoresDataBaseProcessor.Cursor.execute("INSERT OR IGNORE INTO Results (Name, Score) VALUES (?, ?)", (Name, Score))
+        print("a")
+    ScoresDataBaseProcessor.Conn.commit()
 
     
 
@@ -144,14 +213,15 @@ def ExportResultsToCSV(CsvFile):
         CsvWriter.writerow(["Average Score", CalculateAverageScores()])
 
     
-def DirectlyInsert():
+def DirectlyInsert(Student,Score):
 
     try:
+        InsertStudentsandScores(Student,Score)
         OutputFile = r"E:\2024-Project-score-manager-github\v1\Tests\ScoreResult.csv"
-        PeopleScores = MergeStudentsAndScores()
-        RankedPeople = RankPeople(PeopleScores)
-        WritingResultsToDatabase(RankedPeople)
-
+        # PeopleScores = MergeStudentsAndScores(Students, Scores)
+        # RankedPeople = RankPeople(PeopleScores)
+        # WritingResultsToDatabase(RankedPeople)
+        InsertStudentsAndPasswords()
         # Export results to CSV
         ExportResultsToCSV(Constant.OutputFile)
 
@@ -164,23 +234,22 @@ def DirectlyInsert():
 
 
 
-def main(StudentFilePath, ScoreFilePath):
+def main(Filepath):
     # Open the database
     open_database()
 
     try:
-        StudentsFile = StudentFilePath
-        ScoresFile = ScoreFilePath
-        OutputFile = "ScoreResult.csv"
+        File = Filepath
+        OutputFile = r"E:\2024-Project-score-manager-github\v1\Tests\ScoreResult.csv"
 
         # Processing steps
-        Students = ReadStudents(StudentsFile)
-        Scores = ReadScores(ScoresFile)
+        Students,Scores = ReadStudent(File)
         PeopleScores = MergeStudentsAndScores(Students, Scores)
+        
         RankedPeople = RankPeople(PeopleScores)
         AverageScore = CalculateAverageScores()
         WritingResultsToDatabase(RankedPeople)
-
+        InsertStudentsAndPasswords()
 
         # Export results to CSV
         ExportResultsToCSV(Constant.OutputFile)
