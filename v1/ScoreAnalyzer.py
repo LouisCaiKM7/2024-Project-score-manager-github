@@ -210,7 +210,7 @@ def ExportResultsToCSV(CsvFile):
         CsvWriter.writerows(Rows)
 
         # Write the global average score
-        CsvWriter.writerow(["Average Score", CalculateAverageScores()])
+        # CsvWriter.writerow(["Average Score", CalculateAverageScores()])
 
     
 def DirectlyInsert(Student,Score):
@@ -223,6 +223,17 @@ def DirectlyInsert(Student,Score):
         # WritingResultsToDatabase(RankedPeople)
         InsertStudentsAndPasswords()
         # Export results to CSV
+        ExportResultsToCSV(Constant.OutputFile)
+        File = Constant.OutputFile
+
+        # Processing steps
+        Students,Scores = ReadStudent(File)
+        PeopleScores = MergeStudentsAndScores(Students, Scores)
+        
+        RankedPeople = RankPeople(PeopleScores)
+        AverageScore = CalculateAverageScores()
+        WritingResultsToDatabase(RankedPeople)
+        InsertStudentsAndPasswords()
         ExportResultsToCSV(Constant.OutputFile)
 
         print(f"Ranking results have been written to {OutputFile}")
